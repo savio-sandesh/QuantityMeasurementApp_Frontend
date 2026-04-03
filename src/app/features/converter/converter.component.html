@@ -1,0 +1,165 @@
+<main class="dashboard-shell">
+  <mat-drawer-container class="dashboard-layout">
+    <mat-drawer mode="side" [opened]="menuOpen()" class="dashboard-sidenav">
+      <h2 class="sidenav-title">Categories</h2>
+      <button
+        mat-stroked-button
+        type="button"
+        *ngFor="let item of categories"
+        class="category-btn"
+        [class.is-active]="item === category()"
+        (click)="selectCategory(item)"
+      >
+        {{ item }}
+      </button>
+
+      <button mat-flat-button class="logout-btn" type="button" (click)="logout()">
+        Logout
+      </button>
+    </mat-drawer>
+
+    <mat-drawer-content class="dashboard-main">
+      <header class="dashboard-header">
+        <button mat-icon-button type="button" class="menu-btn" (click)="toggleMenu()" aria-label="Toggle side navigation">
+          <lucide-icon [img]="switchIcon" [size]="18"></lucide-icon>
+        </button>
+        <div>
+          <h1>Quantity Measurement Dashboard</h1>
+          <p>{{ category() }} {{ operationLabels[operation()] }}</p>
+        </div>
+      </header>
+
+      <section class="dashboard-grid">
+        <mat-card class="surface-card form-card" appearance="outlined">
+          <div class="tile-title">
+            <h2>{{ category() }} Conversion</h2>
+          </div>
+
+          <div class="operation-tabs" aria-label="Measurement operations">
+            <button
+              mat-stroked-button
+              type="button"
+              class="operation-btn"
+              *ngFor="let op of allowedOperations()"
+              [class.is-active]="op === operation()"
+              (click)="selectOperation(op)"
+            >
+              {{ operationLabels[op] }}
+            </button>
+          </div>
+
+          <form class="converter-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+            <div class="field-grid">
+              <mat-form-field appearance="outline">
+                <mat-label>{{ operation() === 'convert' ? 'Value' : 'First Value' }}</mat-label>
+                <input matInput type="number" min="0" formControlName="primaryValue" placeholder="Enter value" />
+                <mat-error *ngIf="form.controls.primaryValue.touched && form.controls.primaryValue.hasError('required')">Value is required.</mat-error>
+                <mat-error *ngIf="form.controls.primaryValue.touched && form.controls.primaryValue.hasError('min')">Negative values are not allowed.</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>{{ operation() === 'convert' ? 'From Unit' : 'First Unit' }}</mat-label>
+                <mat-select formControlName="primaryUnit">
+                  <mat-option *ngFor="let unit of units()" [value]="unit">{{ unit }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="form.controls.primaryUnit.touched && form.controls.primaryUnit.hasError('required')">Select a unit.</mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="field-grid" *ngIf="operation() !== 'convert'">
+              <mat-form-field appearance="outline">
+                <mat-label>Second Value</mat-label>
+                <input matInput type="number" min="0" formControlName="secondaryValue" placeholder="Enter value" />
+                <mat-error *ngIf="form.controls.secondaryValue.touched && form.controls.secondaryValue.hasError('required')">Second value is required.</mat-error>
+                <mat-error *ngIf="form.controls.secondaryValue.touched && form.controls.secondaryValue.hasError('min')">Negative values are not allowed.</mat-error>
+                <mat-error *ngIf="form.controls.secondaryValue.touched && form.controls.secondaryValue.hasError('nonZero')">Division by zero is not allowed.</mat-error>
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Second Unit</mat-label>
+                <mat-select formControlName="secondaryUnit">
+                  <mat-option *ngFor="let unit of units()" [value]="unit">{{ unit }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="form.controls.secondaryUnit.touched && form.controls.secondaryUnit.hasError('required')">Select a unit.</mat-error>
+              </mat-form-field>
+            </div>
+
+            <div class="field-grid" *ngIf="operation() !== 'compare'">
+              <mat-form-field appearance="outline">
+                <mat-label>Target Unit</mat-label>
+                <mat-select formControlName="targetUnit">
+                  <mat-option *ngFor="let unit of units()" [value]="unit">{{ unit }}</mat-option>
+                </mat-select>
+                <mat-error *ngIf="form.controls.targetUnit.touched && form.controls.targetUnit.hasError('required')">Select a target unit.</mat-error>
+              </mat-form-field>
+            </div>
+
+            <button mat-flat-button color="primary" class="primary-btn" type="submit" [disabled]="loading()">
+              {{ operationLabels[operation()] }}
+            </button>
+
+            <p class="live-note" *ngIf="isLiveConvert()">
+              <lucide-icon [img]="repeatIcon" [size]="14"></lucide-icon>
+              Live mode active. Result updates as you type.
+            </p>
+          </form>
+        </mat-card>
+
+        <mat-card class="surface-card stat-card" appearance="outlined">
+          <h3>Result</h3>
+          <p class="stat-value" *ngIf="result() as currentResult; else noResult">{{ currentResult.message }}</p>
+          <ng-template #noResult>
+            <p class="stat-value">Enter values and press calculate</p>
+          </ng-template>
+        </mat-card>
+
+        <mat-card class="surface-card stat-card" appearance="outlined">
+          <h3>Operation Count</h3>
+          <p class="stat-number">{{ totalOperations() }}</p>
+        </mat-card>
+
+        <mat-card class="surface-card history-card" appearance="outlined">
+          <div class="history-header">
+            <div>
+              <h3>History</h3>
+            </div>
+            <button mat-stroked-button type="button" class="secondary-btn" (click)="refreshHistory()">
+              Refresh
+            </button>
+          </div>
+
+          <p class="history-error" *ngIf="error()">{{ error() }}</p>
+
+          <div class="history-table-wrap" *ngIf="resultHistory.length > 0; else emptyHistory">
+            <table class="history-table" aria-label="Measurement history">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Type</th>
+                  <th>Operation</th>
+                  <th>Input</th>
+                  <th>Result</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of resultHistory; trackBy: trackByHistory">
+                  <td>{{ item.id }}</td>
+                  <td>{{ item.measurementType }}</td>
+                  <td>{{ item.operation }}</td>
+                  <td>{{ item.inputDisplay }}</td>
+                  <td>{{ item.resultDisplay }}</td>
+                  <td>{{ item.createdAtDisplay }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <ng-template #emptyHistory>
+            <div class="empty-state">No conversions yet. Start by converting some units!</div>
+          </ng-template>
+        </mat-card>
+      </section>
+    </mat-drawer-content>
+  </mat-drawer-container>
+</main>

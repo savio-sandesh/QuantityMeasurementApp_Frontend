@@ -1,0 +1,134 @@
+<main class="page-shell">
+  <section class="split-layout" aria-label="Quantity Measurement authentication layout">
+    <aside class="brand-panel card-shell" aria-label="Branding panel">
+      <div class="brand-card">
+        <div class="hero-strip" aria-hidden="true">
+          <div class="hero-circle hero-circle-a"></div>
+          <div class="hero-circle hero-circle-b"></div>
+          <div class="hero-circle hero-circle-c"></div>
+        </div>
+        <div class="brand-icon" aria-hidden="true">
+          <lucide-icon [img]="shoppingBagIcon" [size]="42"></lucide-icon>
+        </div>
+        <h1>Quantity Measurement App</h1>
+        <p>Measure, track, and manage inventory quantities with precision.</p>
+      </div>
+    </aside>
+
+    <section class="auth-panel card-shell" aria-label="Authentication panel">
+      <mat-card class="auth-card" appearance="outlined">
+        <div class="tab-header" aria-label="Authentication tabs">
+          <button
+            type="button"
+            class="tab-button"
+            [class.is-active]="activeTab() === 'login'"
+            [attr.aria-selected]="activeTab() === 'login'"
+            [attr.aria-controls]="loginPanelId"
+            (click)="selectTab('login')"
+          >
+            LOGIN
+          </button>
+          <button
+            type="button"
+            class="tab-button"
+            [class.is-active]="activeTab() === 'signup'"
+            [attr.aria-selected]="activeTab() === 'signup'"
+            [attr.aria-controls]="signupPanelId"
+            (click)="selectTab('signup')"
+          >
+            SIGNUP
+          </button>
+        </div>
+
+        <div class="panel-stack">
+          <form
+            class="auth-form auth-form-login"
+            [class.is-visible]="activeTab() === 'login'"
+            [attr.id]="loginPanelId"
+            [attr.aria-hidden]="activeTab() !== 'login'"
+            [formGroup]="loginForm"
+            (ngSubmit)="submitLogin()"
+            novalidate
+          >
+            <mat-form-field appearance="outline">
+              <mat-label>Email Id</mat-label>
+              <input matInput formControlName="email" type="email" placeholder="Enter Email" />
+              <mat-error *ngIf="loginForm.controls.email.touched && loginForm.controls.email.hasError('required')">Email Id is required.</mat-error>
+              <mat-error *ngIf="loginForm.controls.email.touched && loginForm.controls.email.hasError('email')">Please enter a valid Email Id.</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Password</mat-label>
+              <input
+                matInput
+                formControlName="password"
+                [type]="loginPasswordVisible() ? 'text' : 'password'"
+                placeholder="Enter Password"
+              />
+              <button mat-icon-button matSuffix type="button" class="toggle-password" (click)="toggleLoginPassword()" [attr.aria-label]="loginPasswordVisible() ? 'Hide password' : 'Show password'" title="Toggle password visibility">
+                <lucide-icon [img]="loginPasswordVisible() ? eyeOffIcon : eyeIcon" [size]="16"></lucide-icon>
+              </button>
+              <mat-error *ngIf="loginForm.controls.password.touched && loginForm.controls.password.hasError('required')">Password is required.</mat-error>
+            </mat-form-field>
+
+            <button mat-flat-button color="primary" class="primary-btn" type="submit">LOGIN</button>
+            <p class="form-message" [class.success]="loginMessageTone() === 'success'" [class.error]="loginMessageTone() === 'error'" aria-live="polite">
+              {{ loginMessage() }}
+            </p>
+          </form>
+
+          <form
+            class="auth-form auth-form-signup"
+            [class.is-visible]="activeTab() === 'signup'"
+            [attr.id]="signupPanelId"
+            [attr.aria-hidden]="activeTab() !== 'signup'"
+            [formGroup]="signupForm"
+            (ngSubmit)="submitSignup()"
+            novalidate
+          >
+            <mat-form-field appearance="outline">
+              <mat-label>Full Name</mat-label>
+              <input matInput formControlName="fullName" type="text" placeholder="Enter Full Name" />
+              <mat-error *ngIf="signupForm.controls.fullName.touched && signupForm.controls.fullName.hasError('required')">Full Name is required.</mat-error>
+              <mat-error *ngIf="signupForm.controls.fullName.touched && signupForm.controls.fullName.hasError('minlength')">Full Name must have at least 3 characters.</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Email Id</mat-label>
+              <input matInput formControlName="email" type="email" placeholder="Enter Email" />
+              <mat-error *ngIf="signupForm.controls.email.touched && signupForm.controls.email.hasError('required')">Email Id is required.</mat-error>
+              <mat-error *ngIf="signupForm.controls.email.touched && signupForm.controls.email.hasError('email')">Please enter a valid Email Id.</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Password</mat-label>
+              <input
+                matInput
+                formControlName="password"
+                [type]="signupPasswordVisible() ? 'text' : 'password'"
+                placeholder="Enter Password"
+              />
+              <button mat-icon-button matSuffix type="button" class="toggle-password" (click)="toggleSignupPassword()" [attr.aria-label]="signupPasswordVisible() ? 'Hide password' : 'Show password'" title="Toggle password visibility">
+                <lucide-icon [img]="signupPasswordVisible() ? eyeOffIcon : eyeIcon" [size]="16"></lucide-icon>
+              </button>
+              <mat-error *ngIf="signupForm.controls.password.touched && signupForm.controls.password.hasError('required')">Password is required.</mat-error>
+              <mat-error *ngIf="signupForm.controls.password.touched && signupForm.controls.password.hasError('minlength')">Password must be at least 6 characters.</mat-error>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Mobile Number</mat-label>
+              <input matInput formControlName="mobile" type="tel" inputmode="numeric" placeholder="Enter Mobile Number" />
+              <mat-error *ngIf="signupForm.controls.mobile.touched && signupForm.controls.mobile.hasError('required')">Mobile Number is required.</mat-error>
+              <mat-error *ngIf="signupForm.controls.mobile.touched && signupForm.controls.mobile.hasError('pattern')">Enter a valid 10 digit mobile number.</mat-error>
+            </mat-form-field>
+
+            <button mat-flat-button color="primary" class="primary-btn" type="submit">SIGNUP</button>
+            <p class="form-message" [class.success]="signupMessageTone() === 'success'" [class.error]="signupMessageTone() === 'error'" aria-live="polite">
+              {{ signupMessage() }}
+            </p>
+          </form>
+        </div>
+      </mat-card>
+    </section>
+  </section>
+</main>

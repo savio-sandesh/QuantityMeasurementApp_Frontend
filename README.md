@@ -1,94 +1,82 @@
 # Quantity Measurement App Frontend
 
-A responsive frontend for authentication and quantity operations (convert, compare, add, subtract, divide) across multiple measurement categories.
+Angular 18 migration of the quantity measurement UI. The frontend now uses standalone components, reactive forms, Angular Material, and signals with a modern 2026 dashboard redesign implemented in component-scoped SCSS.
 
-## Overview
+## What Changed
 
-This project provides:
-
-- A tabbed authentication experience (Login/Signup)
-- A protected dashboard for quantity operations
-- Category-based unit handling for Length, Volume, Weight, and Temperature
-- Operation history and aggregate operation count
-
-The UI is built with plain HTML, CSS, and JavaScript and integrates with backend APIs using Fetch.
-
-## Core Features
-
-### Authentication
-
-- Signup and login forms with client-side validation
-- Password visibility toggles
-- JWT token persistence in localStorage (`jwtToken`)
-- Auth guard for protected dashboard routes
-- Automatic redirect to login on missing or invalid auth state
-
-### Quantity Dashboard
-
-- Categories: Length, Volume, Weight, Temperature
-- Operations: Convert, Compare, Add, Subtract, Divide
-- Dynamic form behavior based on selected operation
-- Category-aware unit dropdown population
-- Result card with normalized operation output
-- Logout flow that clears local auth state
-
-### History and Metrics
-
-- History table integration via API
-- Graceful handling of mixed backend field casing
-- Date formatting for readable display
-- Empty-state fallback (`No history found`)
-- Total operation count card
-
-### API Contract Handling
-
-- DTO-based payload mapping for quantity operations
-- Measurement type normalization before request submission
-- Unit normalization for backend-compatible enums
-- `Authorization: Bearer <jwtToken>` on quantity endpoints
-- Centralized response/error handling for common HTTP failures
+- Service-oriented measurement flow moved into `MeasurementService`
+- Standalone auth and converter components
+- Reactive forms with validation, including non-negative measurement values
+- Angular Material controls, cards, buttons, form fields, and selects
+- Signals for measurement result, history, count, and load state
+- Lucide Angular icons for dashboard and auth visual system
+- Modernized maroon + elevated neutral visual theme via global style tokens
+- Converter dashboard with clean side category panel and soft neutral surfaces
+- Refined clean card-based auth and dashboard UI inspired by modern admin layouts
+- Smoother animated transitions for auth tab/forms, cards, and action controls
+- Real-time conversion behavior in convert mode (auto-run using form value changes)
+- Sticky-header history table inside dashboard card layout
+- Split-screen auth layout with smooth login/signup panel transitions
+- Original CSS translated into scoped SCSS per component
 
 ## Project Structure
 
 ```text
 .
+|-- angular.json
 |-- index.html
-|-- converter.html
-|-- style.css
-|-- script.js
-`-- assets
-    |-- css
-    |   |-- app.css
-    |   |-- app.legacy.css
-    |   `-- components
-    |       |-- auth.css
-    |       |-- dashboard.css
-    |       `-- responsive.css
-    `-- js
-        |-- app.js
-        |-- app.legacy.js
-        |-- core
-        |   `-- core.js
-        `-- modules
-            |-- auth.js
-            |-- converter.js
-            `-- history.js
+|-- package.json
+|-- src
+|   |-- main.ts
+|   |-- styles.scss
+|   `-- app
+|       |-- app.routes.ts
+|       |-- app.config.ts
+|       |-- core
+|       |   |-- constants
+|       |   |   `-- api.constants.ts
+|       |   |-- guards
+|       |   |   |-- auth.guard.ts
+|       |   |   `-- guest.guard.ts
+|       |   |-- interceptors
+|       |   |   `-- auth.interceptor.ts
+|       |   |-- models
+|       |   |   `-- measurement.models.ts
+|       |   `-- services
+|       |       |-- auth.service.ts
+|       |       `-- measurement.service.ts
+|       |-- layout
+|       |   `-- shell
+|       |       |-- app.component.ts
+|       |       |-- app.component.html
+|       |       `-- app.component.scss
+|       `-- features
+|           |-- auth
+|           |   |-- auth.component.ts
+|           |   |-- auth.component.html
+|           |   `-- auth.component.scss
+|           `-- converter
+|               |-- converter.component.ts
+|               |-- converter.component.html
+|               `-- converter.component.scss
 ```
 
-## How to Run
+## Run It
 
-1. Clone or download the repository.
-2. Open `index.html` in your browser.
-3. Ensure the backend API is running and reachable from this frontend.
+1. Start backend API first from `c:\QuantityMeasurementApp`:
+	`dotnet run --project .\src\QuantityMeasurementWebApi\QuantityMeasurementWebApi.csproj`
+2. Install frontend dependencies with `npm install`.
+3. Start the Angular app with `npm start`.
+4. Frontend API calls use a dev proxy (`proxy.conf.json`) to route `/api/*` to `http://localhost:5111`.
 
-## API Endpoints (Default Local Configuration)
+## Backend Endpoints
 
-### Auth
+Auth:
 
 - `POST http://localhost:5111/api/v1/auth/register`
 - `POST http://localhost:5111/api/v1/auth/login`
 
-### Quantity
+Quantity:
 
 - `POST http://localhost:5111/api/v1/quantities/convert`
 - `POST http://localhost:5111/api/v1/quantities/compare`
@@ -98,20 +86,8 @@ The UI is built with plain HTML, CSS, and JavaScript and integrates with backend
 - `GET http://localhost:5111/api/v1/quantities/history`
 - `GET http://localhost:5111/api/v1/quantities/count`
 
-Update these URLs in the JavaScript modules as needed for your target environment.
-
-## Technology Stack
-
-- HTML5
-- CSS3 (modular component styles)
-- Vanilla JavaScript (modular architecture)
-- Fetch API with async/await
-
 ## Notes
 
-- `style.css` and `script.js` are lightweight entry loaders for modular assets.
-- Legacy files (`app.legacy.css`, `app.legacy.js`) are preserved as backups.
-
-## License
-
-This project is intended for learning and internal development usage unless otherwise specified by your organization.
+- Legacy HTML/CSS/JS frontend files were removed to keep the codebase Angular-only.
+- Token storage still uses the existing `jwtToken` key for compatibility.
+- Tailwind CSS tooling is installed for future utility-driven styling expansion; current UI styling is SCSS-first.

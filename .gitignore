@@ -24,6 +24,10 @@ node_modules/
 dist/
 build/
 coverage/
+out-tsc/
+
+# Angular CLI
+.angular/
 
 # Runtime/cache artifacts
 .cache/

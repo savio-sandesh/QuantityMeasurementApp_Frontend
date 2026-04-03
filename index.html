@@ -1,97 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quantity Measurement App - UC19</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="style.css" />
+    <meta charset="utf-8" />
+    <title>Quantity Measurement App</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
-    <!-- Authentication landing layout: branding panel + tabbed auth card. -->
-    <main class="page-shell">
-      <section class="split-layout" aria-label="Quantity Measurement authentication layout">
-        <aside class="brand-panel" aria-label="Branding panel">
-          <div class="brand-card">
-            <div class="illustration-wrap" aria-hidden="true">
-              <div class="illustration-shape shape-a"></div>
-              <div class="illustration-shape shape-b"></div>
-              <div class="illustration-shape shape-c"></div>
-            </div>
-            <div class="cart-icon" aria-hidden="true">
-              <svg viewBox="0 0 64 64" role="img" aria-label="Shopping cart icon">
-                <path
-                  d="M6 10h8l5 25h29l6-18H18"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="4"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-                <circle cx="25" cy="50" r="4" />
-                <circle cx="47" cy="50" r="4" />
-              </svg>
-            </div>
-            <h1>Quantity Measurement App</h1>
-            <p>Measure, track, and manage inventory quantities with precision.</p>
-          </div>
-        </aside>
-
-        <!-- Auth panel supports both login and signup in a single card. -->
-        <section class="auth-panel" aria-label="Authentication panel">
-          <div class="auth-card">
-            <div class="tab-header" role="tablist" aria-label="Authentication tabs">
-              <button class="tab-button" type="button" role="tab" id="tab-login" aria-controls="loginForm" aria-selected="false" data-target="login">LOGIN</button>
-              <button class="tab-button is-active" type="button" role="tab" id="tab-signup" aria-controls="signupForm" aria-selected="true" data-target="signup">SIGNUP</button>
-            </div>
-
-            <form class="auth-form" id="loginForm" data-form="login" role="tabpanel" aria-labelledby="tab-login" aria-hidden="true" hidden novalidate>
-              <label for="loginEmail">Email Id</label>
-              <input id="loginEmail" name="email" type="email" placeholder="Enter Email" required />
-
-              <label for="loginPassword">Password</label>
-              <div class="password-field">
-                <input id="loginPassword" name="password" type="password" placeholder="Enter Password" required />
-                <button type="button" class="toggle-password" data-target-input="loginPassword" aria-label="Show password">
-                  <span class="eye">&#128065;</span>
-                </button>
-              </div>
-
-              <button class="primary-btn" type="submit">LOGIN</button>
-              <p class="form-message" id="loginMessage" aria-live="polite"></p>
-            </form>
-
-            <form class="auth-form is-active" id="signupForm" data-form="signup" role="tabpanel" aria-labelledby="tab-signup" aria-hidden="false" novalidate>
-              <label for="fullName">Full Name</label>
-              <input id="fullName" name="fullName" type="text" placeholder="Enter Full Name" required />
-
-              <label for="signupEmail">Email Id</label>
-              <input id="signupEmail" name="email" type="email" placeholder="Enter Email" required />
-
-              <label for="signupPassword">Password</label>
-              <div class="password-field">
-                <input id="signupPassword" name="password" type="password" placeholder="Enter Password" required />
-                <button type="button" class="toggle-password" data-target-input="signupPassword" aria-label="Show password">
-                  <span class="eye">&#128065;</span>
-                </button>
-              </div>
-
-              <label for="mobileNumber">Mobile Number</label>
-              <input id="mobileNumber" name="mobile" type="tel" inputmode="numeric" pattern="[0-9]{10}" placeholder="Enter Mobile Number" required />
-
-              <button class="primary-btn" type="submit">SIGNUP</button>
-              <p class="form-message" id="signupMessage" aria-live="polite"></p>
-            </form>
-          </div>
-        </section>
-      </section>
-    </main>
-
-    <script src="script.js"></script>
+    <app-root></app-root>
   </body>
 </html>

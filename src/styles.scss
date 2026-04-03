@@ -1,0 +1,65 @@
+@use '@angular/material' as mat;
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
+
+$maroon-theme: mat.define-theme(
+  (
+    color: (
+      theme-type: light,
+      primary: mat.$rose-palette,
+      tertiary: mat.$orange-palette
+    ),
+    density: (
+      scale: 0
+    ),
+    typography: (
+      plain-family: 'Manrope, sans-serif',
+      brand-family: 'Manrope, sans-serif'
+    )
+  )
+);
+
+:root {
+  @include mat.all-component-themes($maroon-theme);
+  color-scheme: light;
+  --app-bg: #2f3543;
+  --app-bg-muted: #292f3d;
+  --app-surface: rgba(255, 255, 255, 0.72);
+  --app-surface-strong: rgba(255, 255, 255, 0.9);
+  --app-text: #311c1f;
+  --app-muted: #735f62;
+  --app-accent: #7b1e2b;
+  --app-accent-strong: #5d121d;
+  --app-accent-soft: #f2d7dc;
+  --app-border: rgba(74, 24, 31, 0.16);
+  --app-shadow: 0 24px 60px rgba(58, 25, 25, 0.14);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Manrope', sans-serif;
+  color: var(--app-text);
+  background:
+    radial-gradient(circle at top left, rgba(106, 117, 150, 0.16), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(148, 45, 58, 0.1), transparent 35%),
+    linear-gradient(180deg, var(--app-bg) 0%, var(--app-bg-muted) 100%);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
