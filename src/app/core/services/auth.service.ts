@@ -3,6 +3,8 @@ import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { AUTH_API_BASE_URL } from '../constants/api.constants';
 
+import { environment } from '../../../environments/environment';
+
 export interface LoginPayload {
   email: string;
   password: string;
