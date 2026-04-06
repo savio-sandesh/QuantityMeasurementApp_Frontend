@@ -12,6 +12,7 @@
   width: min(1320px, 100%);
   margin: 0 auto;
   min-height: calc(100vh - 1rem);
+  height: calc(100vh - 1rem);
   border-radius: 18px;
   border: 1px solid rgba(20, 24, 33, 0.2);
   background: #f4f5f8;
@@ -21,12 +22,21 @@
 
 .dashboard-sidenav {
   width: 260px;
+  height: 100%;
   padding: 0.9rem;
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
   border-right: 1px solid #d7dce5;
   background: #e9ebf1;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0.65rem;
+  margin-bottom: 1.1rem;
 }
 
 .sidenav-title {
@@ -55,6 +65,7 @@
 
 .logout-btn {
   margin-top: auto;
+  margin-bottom: 0.15rem;
   border-radius: 999px;
   min-height: 48px;
   font-weight: 700;

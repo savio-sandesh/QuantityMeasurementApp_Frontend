@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -16,7 +16,7 @@ import { AuthService } from '../../core/services/auth.service';
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss'
 })
-export class AuthComponent implements OnInit {
+export class AuthComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
@@ -32,16 +32,18 @@ export class AuthComponent implements OnInit {
   readonly signupMessage = signal('');
   readonly loginMessageTone = signal<'success' | 'error' | ''>('');
   readonly signupMessageTone = signal<'success' | 'error' | ''>('');
+  readonly isSubmittingLogin = signal(false);
+  readonly isSubmittingSignup = signal(false);
 
   readonly loginPanelId = 'auth-login-panel';
   readonly signupPanelId = 'auth-signup-panel';
 
-  readonly loginForm = this.fb.group({
+  readonly loginForm = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required]]
   });
 
-  readonly signupForm = this.fb.group({
+  readonly signupForm = this.fb.nonNullable.group({
     fullName: ['', [Validators.required, Validators.minLength(3)]],
     email: ['', [Validators.required, Validators.email]],
     password: ['', [Validators.required, Validators.minLength(6)]],
@@ -49,12 +51,6 @@ export class AuthComponent implements OnInit {
   });
 
   constructor() {}
-
-  ngOnInit(): void {
-    if (this.authService.hasValidSession()) {
-      void this.router.navigateByUrl('/converter');
-    }
-  }
 
   selectTab(tab: 'login' | 'signup'): void {
     this.activeTab.set(tab);
@@ -70,17 +66,19 @@ export class AuthComponent implements OnInit {
   }
 
   async submitLogin(): Promise<void> {
-    if (this.loginForm.invalid) {
+    if (this.isSubmittingLogin() || this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
       this.setMessage('login', 'Please enter a valid email and password.', 'error');
       return;
     }
 
+    this.isSubmittingLogin.set(true);
     try {
       this.setMessage('login', '', '');
+      const loginValue = this.loginForm.getRawValue();
       const payload = {
-        email: String(this.loginForm.value.email || '').trim(),
-        password: String(this.loginForm.value.password || '')
+        email: loginValue.email.trim(),
+        password: loginValue.password
       };
       await this.authService.login(payload);
       this.setMessage('login', 'Login successful.', 'success');
@@ -88,22 +86,26 @@ export class AuthComponent implements OnInit {
       void this.router.navigateByUrl('/converter');
     } catch (error) {
       this.setMessage('login', this.resolveErrorMessage(error), 'error');
+    } finally {
+      this.isSubmittingLogin.set(false);
     }
   }
 
   async submitSignup(): Promise<void> {
-    if (this.signupForm.invalid) {
+    if (this.isSubmittingSignup() || this.signupForm.invalid) {
       this.signupForm.markAllAsTouched();
       this.setMessage('signup', 'Please complete all signup fields correctly.', 'error');
       return;
     }
 
+    this.isSubmittingSignup.set(true);
     try {
       this.setMessage('signup', '', '');
+      const signupValue = this.signupForm.getRawValue();
       const payload = {
-        fullName: String(this.signupForm.value.fullName || '').trim(),
-        email: String(this.signupForm.value.email || '').trim(),
-        password: String(this.signupForm.value.password || ''),
+        fullName: signupValue.fullName.trim(),
+        email: signupValue.email.trim(),
+        password: signupValue.password,
         role: 'User' as const
       };
       await this.authService.register(payload);
@@ -112,6 +114,8 @@ export class AuthComponent implements OnInit {
       this.selectTab('login');
     } catch (error) {
       this.setMessage('signup', this.resolveErrorMessage(error), 'error');
+    } finally {
+      this.isSubmittingSignup.set(false);
     }
   }
 

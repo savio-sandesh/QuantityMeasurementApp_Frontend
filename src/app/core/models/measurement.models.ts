@@ -6,7 +6,7 @@ export type MeasurementOperation = (typeof MEASUREMENT_OPERATIONS)[number];
 
 export const UNIT_MAP: Record<MeasurementCategory, readonly string[]> = {
   Length: ['Feet', 'Inch', 'Yard', 'Centimeter'],
-  Volume: ['Litre', 'Milliliter', 'Gallon'],
+  Volume: ['Litre', 'Millilitre', 'Gallon'],
   Weight: ['Kilogram', 'Gram', 'Pound'],
   Temperature: ['Celsius', 'Fahrenheit', 'Kelvin']
 } as const;

@@ -1,6 +1,8 @@
 @use '@angular/material' as mat;
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap');
 
+@include mat.core();
+
 $maroon-theme: mat.define-theme(
   (
     color: (
@@ -36,7 +38,14 @@ $maroon-theme: mat.define-theme(
 
 html,
 body {
+  height: 100%;
   min-height: 100%;
+}
+
+.cdk-overlay-container {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
 }
 
 body {

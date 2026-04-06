@@ -21,6 +21,26 @@ import {
 @Injectable({ providedIn: 'root' })
 export class MeasurementService {
   private readonly http = inject(HttpClient);
+  private readonly baseUnitFactors: Record<'Length' | 'Volume' | 'Weight', Record<string, number>> = {
+    Length: {
+      feet: 1,
+      inch: 1 / 12,
+      yard: 3,
+      centimeter: 0.03280839895
+    },
+    Volume: {
+      litre: 1,
+      liter: 1,
+      milliliter: 0.001,
+      millilitre: 0.001,
+      gallon: 3.78541
+    },
+    Weight: {
+      kilogram: 1,
+      gram: 0.001,
+      pound: 0.45359237
+    }
+  };
 
   readonly category = signal<MeasurementCategory>('Length');
   readonly operation = signal<MeasurementOperation>('convert');
@@ -76,7 +96,27 @@ export class MeasurementService {
     }
   }
 
-  async submit(operation: MeasurementOperation, formValue: MeasurementFormValue, category: MeasurementCategory): Promise<void> {
+  getLiveResult(formValue: MeasurementFormValue, category: MeasurementCategory): MeasurementResultViewModel | null {
+    const sourceUnit = formValue.primaryUnit?.trim();
+    const targetUnit = (formValue.targetUnit || formValue.primaryUnit)?.trim();
+
+    if (!sourceUnit || !targetUnit || formValue.primaryValue === null || formValue.primaryValue === undefined) {
+      return null;
+    }
+
+    this.assertNonNegative(formValue.primaryValue, 'Primary value');
+
+    const converted = this.convertLocally(formValue.primaryValue, sourceUnit, targetUnit, category);
+
+    return {
+      message: `${this.formatNumeric(converted)} ${targetUnit}`.trim(),
+      operation: 'convert',
+      unit: targetUnit,
+      raw: null
+    };
+  }
+
+  async logOperation(operation: MeasurementOperation, formValue: MeasurementFormValue, category: MeasurementCategory): Promise<void> {
     this.setCategory(category);
     this.setOperation(operation);
     this.loading.set(true);
@@ -96,6 +136,10 @@ export class MeasurementService {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  async submit(operation: MeasurementOperation, formValue: MeasurementFormValue, category: MeasurementCategory): Promise<void> {
+    await this.logOperation(operation, formValue, category);
   }
 
   async refreshHistory(): Promise<void> {
@@ -195,16 +239,85 @@ export class MeasurementService {
   private toQuantity(value: number | null, unit: string, category: MeasurementCategory): QuantityDTO {
     return {
       value: this.toNumber(value),
-      unit: unit.trim(),
+      unit: this.canonicalizeUnitForApi(unit),
       measurementType: category
     };
+  }
+
+  private convertLocally(value: number, sourceUnit: string, targetUnit: string, category: MeasurementCategory): number {
+    if (category === 'Temperature') {
+      return this.convertTemperature(value, sourceUnit, targetUnit);
+    }
+
+    const factors = this.baseUnitFactors[category];
+    const sourceKey = this.normalizeUnit(sourceUnit);
+    const targetKey = this.normalizeUnit(targetUnit);
+
+    const sourceFactor = factors[sourceKey];
+    const targetFactor = factors[targetKey];
+
+    if (!sourceFactor || !targetFactor) {
+      throw new Error(`Unsupported ${category} unit conversion: ${sourceUnit} -> ${targetUnit}`);
+    }
+
+    const baseValue = value * sourceFactor;
+    return baseValue / targetFactor;
+  }
+
+  private convertTemperature(value: number, sourceUnit: string, targetUnit: string): number {
+    const sourceKey = this.normalizeUnit(sourceUnit);
+    const targetKey = this.normalizeUnit(targetUnit);
+
+    const celsiusValue = this.toCelsius(value, sourceKey);
+
+    switch (targetKey) {
+      case 'celsius':
+        return celsiusValue;
+      case 'fahrenheit':
+        return (celsiusValue * 9) / 5 + 32;
+      case 'kelvin':
+        return celsiusValue + 273.15;
+      default:
+        throw new Error(`Unsupported temperature unit: ${targetUnit}`);
+    }
+  }
+
+  private toCelsius(value: number, unit: string): number {
+    switch (unit) {
+      case 'celsius':
+        return value;
+      case 'fahrenheit':
+        return ((value - 32) * 5) / 9;
+      case 'kelvin':
+        return value - 273.15;
+      default:
+        throw new Error(`Unsupported temperature unit: ${unit}`);
+    }
+  }
+
+  private normalizeUnit(unit: string): string {
+    return unit.trim().toLowerCase();
   }
 
   private toMathQuantity(value: number | null, unit: string): { value: number; unit: string } {
     return {
       value: this.toNumber(value),
-      unit: unit.trim()
+      unit: this.canonicalizeUnitForApi(unit)
     };
+  }
+
+  private canonicalizeUnitForApi(unit: string): string {
+    const trimmed = unit.trim();
+    const normalized = trimmed.toLowerCase();
+
+    switch (normalized) {
+      case 'milliliter':
+        return 'Millilitre';
+      case 'liter':
+        return 'Litre';
+      default:
+        return trimmed;
+    }
   }
 
   private toResultViewModel(
@@ -269,14 +382,15 @@ export class MeasurementService {
     const thisValue = this.formatNumeric(item.thisValue);
     const thisUnit = item.thisUnit || '';
     const secondValue = this.formatNumeric(item.thatValue);
-    const secondUnit = item.targetUnit || item.thatUnit || '';
+    const secondUnit = item.thatUnit || '';
+    const targetUnit = item.targetUnit || item.resultUnit || '';
 
     if (operation === 'CONVERT') {
-      return `${thisValue} ${thisUnit} -> ${secondUnit}`.trim();
+      return `${thisValue} ${thisUnit} -> ${targetUnit}`.trim();
     }
 
     if (operation === 'DIVIDE') {
-      return `${thisValue} ${thisUnit} by ${secondValue}`.trim();
+      return `${thisValue} ${thisUnit} by ${secondValue} ${secondUnit}`.trim();
     }
 
     if (operation === 'ADD' || operation === 'SUBTRACT' || operation === 'COMPARE') {

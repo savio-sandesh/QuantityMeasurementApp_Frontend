@@ -2,16 +2,18 @@
   <mat-drawer-container class="dashboard-layout">
     <mat-drawer mode="side" [opened]="menuOpen()" class="dashboard-sidenav">
       <h2 class="sidenav-title">Categories</h2>
-      <button
-        mat-stroked-button
-        type="button"
-        *ngFor="let item of categories"
-        class="category-btn"
-        [class.is-active]="item === category()"
-        (click)="selectCategory(item)"
-      >
-        {{ item }}
-      </button>
+      <div class="category-list">
+        <button
+          mat-stroked-button
+          type="button"
+          *ngFor="let item of categories"
+          class="category-btn"
+          [class.is-active]="item === category()"
+          (click)="selectCategory(item)"
+        >
+          {{ item }}
+        </button>
+      </div>
 
       <button mat-flat-button class="logout-btn" type="button" (click)="logout()">
         Logout
@@ -48,7 +50,7 @@
             </button>
           </div>
 
-          <form class="converter-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+          <form class="converter-form" [formGroup]="form" novalidate>
             <div class="field-grid">
               <mat-form-field appearance="outline">
                 <mat-label>{{ operation() === 'convert' ? 'Value' : 'First Value' }}</mat-label>
@@ -94,23 +96,16 @@
               </mat-form-field>
             </div>
 
-            <button mat-flat-button color="primary" class="primary-btn" type="submit" [disabled]="loading()">
+            <button mat-flat-button color="primary" class="primary-btn" type="button" [disabled]="loading() || form.invalid" (click)="onConvert()">
               {{ operationLabels[operation()] }}
             </button>
 
-            <p class="live-note" *ngIf="isLiveConvert()">
-              <lucide-icon [img]="repeatIcon" [size]="14"></lucide-icon>
-              Live mode active. Result updates as you type.
-            </p>
           </form>
         </mat-card>
 
         <mat-card class="surface-card stat-card" appearance="outlined">
           <h3>Result</h3>
-          <p class="stat-value" *ngIf="result() as currentResult; else noResult">{{ currentResult.message }}</p>
-          <ng-template #noResult>
-            <p class="stat-value">Enter values and press calculate</p>
-          </ng-template>
+          <p class="stat-value">{{ displayResultMessage() }}</p>
         </mat-card>
 
         <mat-card class="surface-card stat-card" appearance="outlined">

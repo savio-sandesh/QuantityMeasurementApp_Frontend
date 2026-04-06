@@ -14,7 +14,8 @@ Angular 18 migration of the quantity measurement UI. The frontend now uses stand
 - Converter dashboard with clean side category panel and soft neutral surfaces
 - Refined clean card-based auth and dashboard UI inspired by modern admin layouts
 - Smoother animated transitions for auth tab/forms, cards, and action controls
-- Real-time conversion behavior in convert mode (auto-run using form value changes)
+- Real-time conversion preview in convert mode using local signal/computed math
+- Live conversion now runs locally in UI signals and does not write history/count until explicit action
 - Sticky-header history table inside dashboard card layout
 - Split-screen auth layout with smooth login/signup panel transitions
 - Original CSS translated into scoped SCSS per component
@@ -69,6 +70,12 @@ Angular 18 migration of the quantity measurement UI. The frontend now uses stand
 3. Start the Angular app with `npm start`.
 4. Frontend API calls use a dev proxy (`proxy.conf.json`) to route `/api/*` to `http://localhost:5111`.
 
+Auth routing behavior:
+
+- `/login` is the dedicated guest route for authentication.
+- `/converter` is protected by `AuthGuard` and redirects to `/login` if no valid session is present.
+- Visiting `/` redirects to `/login`.
+
 ## Backend Endpoints
 
 Auth:
@@ -91,3 +98,16 @@ Quantity:
 - Legacy HTML/CSS/JS frontend files were removed to keep the codebase Angular-only.
 - Token storage still uses the existing `jwtToken` key for compatibility.
 - Tailwind CSS tooling is installed for future utility-driven styling expansion; current UI styling is SCSS-first.
+- Angular Material core styles and browser animations are enabled globally to keep overlay components (select/dropdown panels) correctly positioned.
+
+Converter behavior:
+
+- Live mode updates the displayed convert result locally as users type.
+- History and operation count are updated only when the action button is clicked.
+- Volume unit requests are canonicalized for backend compatibility (for example `Milliliter` input is sent as `Millilitre`).
+
+## Troubleshooting Login 400
+
+- Open browser DevTools Console and inspect logs prefixed with `AuthService:login`.
+- The app now logs status, URL, and backend response body for failed login/register requests.
+- Ensure request JSON contains `email` and `password` keys, and verify backend is running at `http://localhost:5111`.

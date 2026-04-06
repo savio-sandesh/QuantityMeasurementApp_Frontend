@@ -4,6 +4,11 @@ import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (request: HttpRequest<unknown>, next: HttpHandlerFn) => {
   const authService = inject(AuthService);
+
+  if (request.url.includes('/api/v1/auth/')) {
+    return next(request);
+  }
+
   const token = authService.getToken();
 
   if (!token) {

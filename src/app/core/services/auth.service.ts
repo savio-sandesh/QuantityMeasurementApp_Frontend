@@ -32,6 +32,7 @@ export class AuthService {
     try {
       return await firstValueFrom(this.http.post<AuthResponse>(`${AUTH_API_BASE_URL}/register`, payload));
     } catch (error) {
+      this.logHttpError('register', error, payload);
       throw new Error(this.toFriendlyErrorMessage(error, 'Signup failed. Please try again.'));
     }
   }
@@ -52,6 +53,7 @@ export class AuthService {
         throw error;
       }
 
+      this.logHttpError('login', error, payload);
       throw new Error(this.toFriendlyErrorMessage(error, 'Invalid credentials. Please check your email and password.'));
     }
   }
@@ -103,18 +105,30 @@ export class AuthService {
 
   private toFriendlyErrorMessage(error: unknown, fallback: string): string {
     if (error && typeof error === 'object') {
-      const candidate =
-        (error as { error?: unknown }).error ??
+      const responseBody = (error as { error?: unknown }).error;
+
+      if (responseBody && typeof responseBody === 'object') {
+        const bodyMessage =
+          (responseBody as { message?: unknown }).message ??
+          (responseBody as { error?: unknown }).error ??
+          (responseBody as { title?: unknown }).title;
+
+        if (typeof bodyMessage === 'string' && bodyMessage.trim()) {
+          return bodyMessage;
+        }
+      }
+
+      const topLevelMessage =
         (error as { message?: unknown }).message ??
         (error as { title?: unknown }).title;
 
-      if (typeof candidate === 'string' && candidate.trim()) {
-        return candidate;
+      if (typeof topLevelMessage === 'string' && topLevelMessage.trim() && !topLevelMessage.startsWith('Http failure response')) {
+        return topLevelMessage;
       }
 
       const status = (error as { status?: unknown }).status;
       if (status === 0) {
-        return 'Cannot reach backend API. Please ensure the Web API is running on localhost:5111.';
+        return 'Backend Server is Down. Please ensure the Web API is running on http://localhost:5111.';
       }
       if (status === 401) {
         return fallback;
@@ -132,5 +146,29 @@ export class AuthService {
     }
 
     return fallback;
+  }
+
+  private logHttpError(action: 'login' | 'register', error: unknown, payload: LoginPayload | SignupPayload): void {
+    if (!(error && typeof error === 'object')) {
+      return;
+    }
+
+    const status = (error as { status?: unknown }).status;
+    const statusText = (error as { statusText?: unknown }).statusText;
+    const url = (error as { url?: unknown }).url;
+    const body = (error as { error?: unknown }).error;
+
+    const safePayload = {
+      ...payload,
+      password: '***'
+    };
+
+    console.error(`[AuthService:${action}] request failed`, {
+      status,
+      statusText,
+      url,
+      payload: safePayload,
+      responseBody: body
+    });
   }
 }

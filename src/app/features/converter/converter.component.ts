@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -59,6 +59,7 @@ export class ConverterComponent implements OnInit {
   private readonly measurementService = inject(MeasurementService);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly menuOpen = signal(true);
   readonly categories = MEASUREMENT_CATEGORIES;
@@ -72,6 +73,38 @@ export class ConverterComponent implements OnInit {
   readonly category = this.measurementService.category;
   readonly operation = this.measurementService.operation;
   readonly isLiveConvert = computed(() => this.operation() === 'convert');
+  readonly livePrimaryValue = signal<number | null>(null);
+  readonly livePrimaryUnit = signal<string>('');
+  readonly liveTargetUnit = signal<string>('');
+  readonly liveResult = computed(() => {
+    if (!this.isLiveConvert()) {
+      return null;
+    }
+
+    return this.measurementService.getLiveResult(
+      {
+        primaryValue: this.livePrimaryValue(),
+        primaryUnit: this.livePrimaryUnit(),
+        secondaryValue: null,
+        secondaryUnit: '',
+        targetUnit: this.liveTargetUnit()
+      },
+      this.category()
+    );
+  });
+  readonly displayResultMessage = computed(() => {
+    const liveResult = this.liveResult();
+    if (liveResult?.message) {
+      return liveResult.message;
+    }
+
+    const serverResult = this.result();
+    if (serverResult?.message) {
+      return serverResult.message;
+    }
+
+    return 'Enter values and press convert';
+  });
 
   readonly calcIcon = Calculator;
   readonly historyIcon = History;
@@ -97,14 +130,13 @@ export class ConverterComponent implements OnInit {
     targetUnit: ['', []]
   });
 
-  readonly resultMessage = computed(() => this.result()?.message || 'Enter a value and calculate a result.');
-
   constructor() {}
 
   ngOnInit(): void {
     this.applyOperationValidators();
     this.ensureUnitDefaults();
-    this.bindLiveConvert();
+    this.bindLiveInputs();
+    this.syncLiveSignalsFromForm();
     void this.measurementService.refreshHistory();
     void this.measurementService.refreshCount();
   }
@@ -116,6 +148,8 @@ export class ConverterComponent implements OnInit {
     if (!this.isLiveConvert()) {
       this.measurementService.clearResult();
     }
+
+    this.syncLiveSignalsFromForm();
   }
 
   selectOperation(operation: MeasurementOperation): void {
@@ -125,9 +159,11 @@ export class ConverterComponent implements OnInit {
     if (!this.isLiveConvert()) {
       this.measurementService.clearResult();
     }
+
+    this.syncLiveSignalsFromForm();
   }
 
-  async submit(): Promise<void> {
+  async onConvert(): Promise<void> {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -136,7 +172,7 @@ export class ConverterComponent implements OnInit {
     const value = this.form.getRawValue() as MeasurementFormValue;
 
     try {
-      await this.measurementService.submit(this.operation(), value, this.category());
+      await this.measurementService.logOperation(this.operation(), value, this.category());
     } catch {
       // Surface state through the service error signal.
     }
@@ -214,26 +250,20 @@ export class ConverterComponent implements OnInit {
     this.form.controls.targetUnit.updateValueAndValidity({ emitEvent: false });
   }
 
-  private bindLiveConvert(): void {
+  private bindLiveInputs(): void {
     this.form.valueChanges
-      .pipe(debounceTime(280), distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)), takeUntilDestroyed())
-      .subscribe(() => {
-        if (!this.isLiveConvert()) {
-          return;
-        }
+      .pipe(
+        debounceTime(280),
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => this.syncLiveSignalsFromForm());
+  }
 
-        if (
-          this.form.controls.primaryValue.invalid ||
-          this.form.controls.primaryUnit.invalid ||
-          this.form.controls.targetUnit.invalid ||
-          this.form.controls.primaryValue.value === null
-        ) {
-          return;
-        }
-
-        const value = this.form.getRawValue() as MeasurementFormValue;
-        void this.measurementService.submit('convert', value, this.category());
-      });
+  private syncLiveSignalsFromForm(): void {
+    this.livePrimaryValue.set(this.form.controls.primaryValue.value);
+    this.livePrimaryUnit.set(this.form.controls.primaryUnit.value || '');
+    this.liveTargetUnit.set(this.form.controls.targetUnit.value || this.form.controls.primaryUnit.value || '');
   }
 
   get resultHistory(): MeasurementHistoryViewModel[] {
