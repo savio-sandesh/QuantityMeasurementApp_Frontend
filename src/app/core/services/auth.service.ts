@@ -8,6 +8,10 @@ export interface LoginPayload {
   password: string;
 }
 
+export interface GoogleLoginPayload {
+  idToken: string;
+}
+
 export interface SignupPayload {
   fullName: string;
   email: string;
@@ -40,7 +44,7 @@ export class AuthService {
   async login(payload: LoginPayload): Promise<AuthResponse> {
     try {
       const response = await firstValueFrom(this.http.post<AuthResponse>(`${AUTH_API_BASE_URL}/login`, payload));
-      const token = response.token || response.jwtToken || response.accessToken;
+      const token = this.extractToken(response);
 
       if (!token) {
         throw new Error('Login succeeded but token was not returned by the server.');
@@ -55,6 +59,27 @@ export class AuthService {
 
       this.logHttpError('login', error, payload);
       throw new Error(this.toFriendlyErrorMessage(error, 'Invalid credentials. Please check your email and password.'));
+    }
+  }
+
+  async loginWithGoogle(payload: GoogleLoginPayload): Promise<AuthResponse> {
+    try {
+      const response = await firstValueFrom(this.http.post<AuthResponse>(`${AUTH_API_BASE_URL}/google`, payload));
+      const token = this.extractToken(response);
+
+      if (!token) {
+        throw new Error('Google login succeeded but token was not returned by the server.');
+      }
+
+      this.storeToken(token);
+      return response;
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('token was not returned')) {
+        throw error;
+      }
+
+      this.logHttpError('google', error, payload);
+      throw new Error(this.toFriendlyErrorMessage(error, 'Google login failed. Please try again.'));
     }
   }
 
@@ -74,17 +99,14 @@ export class AuthService {
 
   hasValidSession(): boolean {
     const token = this.getToken();
-
     if (!token) {
       return false;
     }
-
     return !this.isTokenExpired(token);
   }
 
   isTokenExpired(token: string): boolean {
     const parts = token.split('.');
-
     if (parts.length !== 3) {
       return false;
     }
@@ -92,15 +114,17 @@ export class AuthService {
     try {
       const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
       const expiry = payload?.exp;
-
       if (typeof expiry !== 'number') {
         return false;
       }
-
       return Date.now() >= expiry * 1000;
     } catch {
       return false;
     }
+  }
+
+  private extractToken(response: AuthResponse): string | undefined {
+    return response.token || response.jwtToken || response.accessToken;
   }
 
   private toFriendlyErrorMessage(error: unknown, fallback: string): string {
@@ -148,7 +172,7 @@ export class AuthService {
     return fallback;
   }
 
-  private logHttpError(action: 'login' | 'register', error: unknown, payload: LoginPayload | SignupPayload): void {
+  private logHttpError(action: 'login' | 'register' | 'google', error: unknown, payload: LoginPayload | SignupPayload | GoogleLoginPayload): void {
     if (!(error && typeof error === 'object')) {
       return;
     }
@@ -158,10 +182,13 @@ export class AuthService {
     const url = (error as { url?: unknown }).url;
     const body = (error as { error?: unknown }).error;
 
-    const safePayload = {
-      ...payload,
-      password: '***'
-    };
+    const safePayload = { ...payload } as Record<string, unknown>;
+if (typeof safePayload['password'] === 'string') {
+  safePayload['password'] = '***';
+}
+if (typeof safePayload['idToken'] === 'string') {
+  safePayload['idToken'] = '***';
+}
 
     console.error(`[AuthService:${action}] request failed`, {
       status,

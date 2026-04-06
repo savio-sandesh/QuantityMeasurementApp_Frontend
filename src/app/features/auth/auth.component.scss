@@ -160,24 +160,16 @@
 
 .panel-stack {
   position: relative;
-  min-height: 448px;
 }
 
 .auth-form {
-  position: absolute;
-  inset: 0;
-  display: grid;
+  display: none;
   gap: 0.8rem;
-  opacity: 0;
-  transform: translateY(14px) scale(0.985);
-  pointer-events: none;
-  transition: opacity 0.33s ease, transform 0.33s ease;
+  animation: fadeUp 0.28s ease both;
 }
 
 .auth-form.is-visible {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
+  display: grid;
 }
 
 .auth-form mat-form-field {
@@ -207,6 +199,17 @@
   margin-top: 0.2rem;
 }
 
+.primary-btn[disabled] {
+  opacity: 1;
+  border: 1px solid var(--app-border);
+  background: color-mix(in srgb, var(--app-accent) 36%, var(--app-surface-strong)) !important;
+  color: color-mix(in srgb, var(--app-heading) 72%, white 28%) !important;
+}
+
+.primary-btn[disabled] .mdc-button__label {
+  color: inherit;
+}
+
 .form-message {
   min-height: 1.35rem;
   margin: 0;
@@ -220,6 +223,26 @@
 
 .form-message.error {
   color: #b42318;
+}
+
+.oauth-separator {
+  display: grid;
+  place-items: center;
+  margin: 0.3rem 0 0.1rem;
+  color: var(--app-muted);
+  font-size: 0.9rem;
+}
+
+.oauth-separator span {
+  position: relative;
+  padding: 0 0.65rem;
+  background: var(--app-surface-strong);
+}
+
+.google-btn-host {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
 }
 
 @media (max-width: 980px) {
@@ -244,10 +267,6 @@
   .auth-panel {
     padding: 1rem 1.1rem 1.2rem;
   }
-
-  .panel-stack {
-    min-height: 412px;
-  }
 }
 
 @media (max-width: 640px) {
@@ -261,10 +280,6 @@
 
   .tab-header {
     gap: 1rem;
-  }
-
-  .panel-stack {
-    min-height: 430px;
   }
 }
 

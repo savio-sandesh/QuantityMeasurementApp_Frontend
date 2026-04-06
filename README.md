@@ -21,6 +21,12 @@ Angular 18 migration of the quantity measurement UI. The frontend now uses stand
 - Split-screen auth layout with smooth login/signup panel transitions
 - Original CSS translated into scoped SCSS per component
 
+Google authentication support:
+
+- Frontend loads Google Identity Services and renders "Continue with Google" on auth forms.
+- On success, frontend sends Google ID token to backend `/api/v1/auth/google`.
+- Backend returns local JWT, stored using existing token flow and guards.
+
 ## Project Structure
 
 ```text
@@ -110,7 +116,7 @@ Theme behavior:
 
 Converter behavior:
 
-- Live mode updates the displayed convert result locally as users type.
+- Result panel updates only after clicking the operation button (Convert/Compare/Add/Subtract/Divide).
 - History and operation count are updated only when the action button is clicked.
 - Volume unit requests are canonicalized for backend compatibility (for example `Milliliter` input is sent as `Millilitre`).
 

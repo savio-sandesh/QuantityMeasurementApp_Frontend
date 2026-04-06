@@ -1,9 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators, ValidatorFn, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -54,7 +52,6 @@ export class ConverterComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly themeService = inject(ThemeService);
   private readonly router = inject(Router);
-  private readonly destroyRef = inject(DestroyRef);
 
   readonly menuOpen = signal(true);
   readonly categories = MEASUREMENT_CATEGORIES;
@@ -68,40 +65,14 @@ export class ConverterComponent implements OnInit {
   readonly category = this.measurementService.category;
   readonly operation = this.measurementService.operation;
   readonly isDarkTheme = this.themeService.isDark;
-  readonly isLiveConvert = computed(() => this.operation() === 'convert');
-  readonly livePrimaryValue = signal<number | null>(null);
-  readonly livePrimaryUnit = signal<string>('');
-  readonly liveTargetUnit = signal<string>('');
-  // Live preview is pure local math. It intentionally avoids API calls/history updates.
-  readonly liveResult = computed(() => {
-    if (!this.isLiveConvert()) {
-      return null;
-    }
-
-    return this.measurementService.getLiveResult(
-      {
-        primaryValue: this.livePrimaryValue(),
-        primaryUnit: this.livePrimaryUnit(),
-        secondaryValue: null,
-        secondaryUnit: '',
-        targetUnit: this.liveTargetUnit()
-      },
-      this.category()
-    );
-  });
   readonly displayResultMessage = computed(() => {
-    const liveResult = this.liveResult();
-    if (liveResult?.message) {
-      return liveResult.message;
-    }
-
-    // For non-convert operations, show the last persisted server result.
+    // Show only persisted server result after explicit operation button click.
     const serverResult = this.result();
     if (serverResult?.message) {
       return serverResult.message;
     }
 
-    return 'Enter values and press convert';
+    return `Enter values and press ${this.operationLabels[this.operation()]}`;
   });
 
   readonly switchIcon = ArrowRightLeft;
@@ -127,8 +98,6 @@ export class ConverterComponent implements OnInit {
   ngOnInit(): void {
     this.applyOperationValidators();
     this.ensureUnitDefaults();
-    this.bindLiveInputs();
-    this.syncLiveSignalsFromForm();
     void this.measurementService.refreshHistory();
     void this.measurementService.refreshCount();
   }
@@ -137,22 +106,13 @@ export class ConverterComponent implements OnInit {
     this.measurementService.setCategory(category);
     this.ensureUnitDefaults();
     this.applyOperationValidators();
-    if (!this.isLiveConvert()) {
-      this.measurementService.clearResult();
-    }
-
-    this.syncLiveSignalsFromForm();
+    this.measurementService.clearResult();
   }
 
   selectOperation(operation: MeasurementOperation): void {
     this.measurementService.setOperation(operation);
     this.applyOperationValidators();
-
-    if (!this.isLiveConvert()) {
-      this.measurementService.clearResult();
-    }
-
-    this.syncLiveSignalsFromForm();
+    this.measurementService.clearResult();
   }
 
   async onConvert(): Promise<void> {
@@ -245,23 +205,6 @@ export class ConverterComponent implements OnInit {
     this.form.controls.secondaryValue.updateValueAndValidity({ emitEvent: false });
     this.form.controls.secondaryUnit.updateValueAndValidity({ emitEvent: false });
     this.form.controls.targetUnit.updateValueAndValidity({ emitEvent: false });
-  }
-
-  private bindLiveInputs(): void {
-    // Keep signals in sync with the form so computed live preview stays reactive.
-    this.form.valueChanges
-      .pipe(
-        debounceTime(280),
-        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(() => this.syncLiveSignalsFromForm());
-  }
-
-  private syncLiveSignalsFromForm(): void {
-    this.livePrimaryValue.set(this.form.controls.primaryValue.value);
-    this.livePrimaryUnit.set(this.form.controls.primaryUnit.value || '');
-    this.liveTargetUnit.set(this.form.controls.targetUnit.value || this.form.controls.primaryUnit.value || '');
   }
 
   get resultHistory(): MeasurementHistoryViewModel[] {

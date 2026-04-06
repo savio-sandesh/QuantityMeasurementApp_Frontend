@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { AfterViewInit, Component, OnDestroy, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { Eye, EyeOff, LucideAngularModule, ShoppingBag } from 'lucide-angular';
 import { AuthService } from '../../core/services/auth.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-auth',
@@ -18,11 +19,16 @@ import { ThemeService } from '../../core/services/theme.service';
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss'
 })
-export class AuthComponent {
+export class AuthComponent implements AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly themeService = inject(ThemeService);
   private readonly router = inject(Router);
+
+  private googleRetryTimer: ReturnType<typeof setTimeout> | null = null;
+  private readonly maxGoogleInitRetries = 30;
+  private readonly googleLoginContainerId = 'google-login-btn';
+  private readonly googleSignupContainerId = 'google-signup-btn';
 
   readonly shoppingBagIcon = ShoppingBag;
   readonly eyeIcon = Eye;
@@ -54,7 +60,16 @@ export class AuthComponent {
     mobile: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]]
   });
 
-  constructor() {}
+  ngAfterViewInit(): void {
+    this.initializeGoogleSignIn(0);
+  }
+
+  ngOnDestroy(): void {
+    if (this.googleRetryTimer) {
+      clearTimeout(this.googleRetryTimer);
+      this.googleRetryTimer = null;
+    }
+  }
 
   selectTab(tab: 'login' | 'signup'): void {
     this.activeTab.set(tab);
@@ -71,6 +86,9 @@ export class AuthComponent {
 
   toggleTheme(): void {
     this.themeService.toggleTheme();
+
+    // Re-render Google button so it matches current theme.
+    setTimeout(() => this.renderGoogleButtons(), 0);
   }
 
   async submitLogin(): Promise<void> {
@@ -84,11 +102,10 @@ export class AuthComponent {
     try {
       this.setMessage('login', '', '');
       const loginValue = this.loginForm.getRawValue();
-      const payload = {
+      await this.authService.login({
         email: loginValue.email.trim(),
         password: loginValue.password
-      };
-      await this.authService.login(payload);
+      });
       this.setMessage('login', 'Login successful.', 'success');
       this.loginForm.reset();
       void this.router.navigateByUrl('/converter');
@@ -110,13 +127,12 @@ export class AuthComponent {
     try {
       this.setMessage('signup', '', '');
       const signupValue = this.signupForm.getRawValue();
-      const payload = {
+      await this.authService.register({
         fullName: signupValue.fullName.trim(),
         email: signupValue.email.trim(),
         password: signupValue.password,
-        role: 'User' as const
-      };
-      await this.authService.register(payload);
+        role: 'User'
+      });
       this.setMessage('signup', 'Signup successful. You can now log in.', 'success');
       this.signupForm.reset();
       this.selectTab('login');
@@ -124,6 +140,80 @@ export class AuthComponent {
       this.setMessage('signup', this.resolveErrorMessage(error), 'error');
     } finally {
       this.isSubmittingSignup.set(false);
+    }
+  }
+
+  private initializeGoogleSignIn(retryCount: number): void {
+    if (!environment.googleClientId || environment.googleClientId.startsWith('YOUR_')) {
+      this.setMessage('login', 'Google sign-in is not configured yet.', 'error');
+      return;
+    }
+
+    if (!window.google?.accounts?.id) {
+      if (retryCount >= this.maxGoogleInitRetries) {
+        this.setMessage('login', 'Google sign-in failed to load. Please refresh.', 'error');
+        return;
+      }
+
+      this.googleRetryTimer = setTimeout(() => this.initializeGoogleSignIn(retryCount + 1), 250);
+      return;
+    }
+
+    window.google.accounts.id.initialize({
+      client_id: environment.googleClientId,
+      callback: (response: GoogleCredentialResponse) => {
+        void this.handleGoogleCredential(response);
+      },
+      auto_select: false,
+      cancel_on_tap_outside: true
+    });
+
+    this.renderGoogleButtons();
+  }
+
+  private renderGoogleButtons(): void {
+    if (!window.google?.accounts?.id) {
+      return;
+    }
+
+    const commonOptions: GoogleButtonConfiguration = {
+      type: 'standard',
+      theme: this.isDarkTheme() ? 'filled_black' : 'outline',
+      size: 'large',
+      text: 'continue_with',
+      shape: 'pill',
+      width: 320
+    };
+
+    const loginHost = document.getElementById(this.googleLoginContainerId);
+    if (loginHost) {
+      loginHost.innerHTML = '';
+      window.google.accounts.id.renderButton(loginHost, commonOptions);
+    }
+
+    const signupHost = document.getElementById(this.googleSignupContainerId);
+    if (signupHost) {
+      signupHost.innerHTML = '';
+      window.google.accounts.id.renderButton(signupHost, commonOptions);
+    }
+  }
+
+  private async handleGoogleCredential(response: GoogleCredentialResponse): Promise<void> {
+    if (!response.credential) {
+      this.setMessage('login', 'Google sign-in failed. Please try again.', 'error');
+      return;
+    }
+
+    this.isSubmittingLogin.set(true);
+    try {
+      this.setMessage('login', '', '');
+      await this.authService.loginWithGoogle({ idToken: response.credential });
+      this.setMessage('login', 'Google login successful.', 'success');
+      void this.router.navigateByUrl('/converter');
+    } catch (error) {
+      this.setMessage('login', this.resolveErrorMessage(error), 'error');
+    } finally {
+      this.isSubmittingLogin.set(false);
     }
   }
 
