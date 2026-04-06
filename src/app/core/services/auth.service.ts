@@ -152,7 +152,7 @@ export class AuthService {
 
       const status = (error as { status?: unknown }).status;
       if (status === 0) {
-        return 'Backend Server is Down. Please ensure the Web API is running on http://localhost:5111.';
+        return `Backend Server is Down. Please ensure the Web API is running on ${environment.apiBaseUrl}.`;
       }
       if (status === 401) {
         return fallback;

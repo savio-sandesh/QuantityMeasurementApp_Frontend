@@ -4,18 +4,14 @@ import { AuthService } from '../services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (request: HttpRequest<unknown>, next: HttpHandlerFn) => {
   const authService = inject(AuthService);
+  const authBasePath = `${environment.apiBaseUrl}/auth/`;
 
-  if (request.url.includes('/api/v1/auth/')) {
+  if (request.url.startsWith(authBasePath)) {
     return next(request);
   }
 
   const token = authService.getToken();
-
-  if (!token) {
-    return next(request);
-  }
-
-  if (request.headers.has('Authorization')) {
+  if (!token || request.headers.has('Authorization')) {
     return next(request);
   }
 
