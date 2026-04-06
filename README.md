@@ -11,6 +11,7 @@ Angular 18 migration of the quantity measurement UI. The frontend now uses stand
 - Signals for measurement result, history, count, and load state
 - Lucide Angular icons for dashboard and auth visual system
 - Modernized maroon + elevated neutral visual theme via global style tokens
+- Modernized teal-first visual theme with light and dark mode support
 - Converter dashboard with clean side category panel and soft neutral surfaces
 - Refined clean card-based auth and dashboard UI inspired by modern admin layouts
 - Smoother animated transitions for auth tab/forms, cards, and action controls
@@ -99,6 +100,13 @@ Quantity:
 - Token storage still uses the existing `jwtToken` key for compatibility.
 - Tailwind CSS tooling is installed for future utility-driven styling expansion; current UI styling is SCSS-first.
 - Angular Material core styles and browser animations are enabled globally to keep overlay components (select/dropdown panels) correctly positioned.
+
+Theme behavior:
+
+- Light mode uses a teal-centered palette and white surfaces.
+- Dark mode uses deep charcoal surfaces with desaturated teal accents.
+- Theme preference is persisted via localStorage and restored on app load.
+- Toggle icon uses Material symbols (`dark_mode`/`light_mode`) in auth and dashboard headers.
 
 Converter behavior:
 

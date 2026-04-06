@@ -11,16 +11,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatDividerModule } from '@angular/material/divider';
-import {
-  Activity,
-  ArrowRightLeft,
-  Calculator,
-  Gauge,
-  History,
-  LogOut,
-  LucideAngularModule,
-  Repeat
-} from 'lucide-angular';
+import { MatIconModule } from '@angular/material/icon';
+import { ArrowRightLeft, LucideAngularModule } from 'lucide-angular';
 import { AuthService } from '../../core/services/auth.service';
 import {
   MeasurementCategory,
@@ -30,6 +22,7 @@ import {
   MeasurementHistoryViewModel
 } from '../../core/models/measurement.models';
 import { MeasurementService } from '../../core/services/measurement.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 const nonZeroValidator: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
   const value = Number(control.value);
@@ -49,6 +42,7 @@ const nonZeroValidator: ValidatorFn = (control: AbstractControl): ValidationErro
     MatSelectModule,
     MatSidenavModule,
     MatDividerModule,
+    MatIconModule,
     LucideAngularModule
   ],
   templateUrl: './converter.component.html',
@@ -58,6 +52,7 @@ export class ConverterComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly measurementService = inject(MeasurementService);
   private readonly authService = inject(AuthService);
+  private readonly themeService = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -72,10 +67,12 @@ export class ConverterComponent implements OnInit {
   readonly error = this.measurementService.error;
   readonly category = this.measurementService.category;
   readonly operation = this.measurementService.operation;
+  readonly isDarkTheme = this.themeService.isDark;
   readonly isLiveConvert = computed(() => this.operation() === 'convert');
   readonly livePrimaryValue = signal<number | null>(null);
   readonly livePrimaryUnit = signal<string>('');
   readonly liveTargetUnit = signal<string>('');
+  // Live preview is pure local math. It intentionally avoids API calls/history updates.
   readonly liveResult = computed(() => {
     if (!this.isLiveConvert()) {
       return null;
@@ -98,6 +95,7 @@ export class ConverterComponent implements OnInit {
       return liveResult.message;
     }
 
+    // For non-convert operations, show the last persisted server result.
     const serverResult = this.result();
     if (serverResult?.message) {
       return serverResult.message;
@@ -106,13 +104,7 @@ export class ConverterComponent implements OnInit {
     return 'Enter values and press convert';
   });
 
-  readonly calcIcon = Calculator;
-  readonly historyIcon = History;
-  readonly gaugeIcon = Gauge;
   readonly switchIcon = ArrowRightLeft;
-  readonly repeatIcon = Repeat;
-  readonly statusIcon = Activity;
-  readonly logoutIcon = LogOut;
 
   readonly operationLabels: Record<MeasurementOperation, string> = {
     convert: 'Convert',
@@ -172,6 +164,7 @@ export class ConverterComponent implements OnInit {
     const value = this.form.getRawValue() as MeasurementFormValue;
 
     try {
+      // Persisted operation path: this is the only place that updates history/count.
       await this.measurementService.logOperation(this.operation(), value, this.category());
     } catch {
       // Surface state through the service error signal.
@@ -185,6 +178,10 @@ export class ConverterComponent implements OnInit {
 
   toggleMenu(): void {
     this.menuOpen.update((open) => !open);
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 
   logout(): void {
@@ -251,6 +248,7 @@ export class ConverterComponent implements OnInit {
   }
 
   private bindLiveInputs(): void {
+    // Keep signals in sync with the form so computed live preview stays reactive.
     this.form.valueChanges
       .pipe(
         debounceTime(280),

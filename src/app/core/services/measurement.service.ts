@@ -5,7 +5,6 @@ import { QUANTITY_API_BASE_URL } from '../constants/api.constants';
 import {
   CATEGORY_ALLOWED_OPERATIONS,
   MEASUREMENT_CATEGORIES,
-  MEASUREMENT_OPERATIONS,
   MeasurementCategory,
   MeasurementFormValue,
   MeasurementHistoryViewModel,
@@ -81,22 +80,8 @@ export class MeasurementService {
     return this.getAllowedOperations(category).includes(operation);
   }
 
-  getOperationLabel(operation: MeasurementOperation): string {
-    switch (operation) {
-      case 'compare':
-        return 'Equality';
-      case 'add':
-        return 'Addition';
-      case 'subtract':
-        return 'Subtraction';
-      case 'divide':
-        return 'Division';
-      default:
-        return 'Conversion';
-    }
-  }
-
   getLiveResult(formValue: MeasurementFormValue, category: MeasurementCategory): MeasurementResultViewModel | null {
+    // Local conversion helper for live mode. No backend call, no count/history mutation.
     const sourceUnit = formValue.primaryUnit?.trim();
     const targetUnit = (formValue.targetUnit || formValue.primaryUnit)?.trim();
 
@@ -117,6 +102,7 @@ export class MeasurementService {
   }
 
   async logOperation(operation: MeasurementOperation, formValue: MeasurementFormValue, category: MeasurementCategory): Promise<void> {
+    // Backend operation path: executes API call and then refreshes persisted aggregates.
     this.setCategory(category);
     this.setOperation(operation);
     this.loading.set(true);
@@ -136,10 +122,6 @@ export class MeasurementService {
     } finally {
       this.loading.set(false);
     }
-  }
-
-  async submit(operation: MeasurementOperation, formValue: MeasurementFormValue, category: MeasurementCategory): Promise<void> {
-    await this.logOperation(operation, formValue, category);
   }
 
   async refreshHistory(): Promise<void> {
@@ -307,6 +289,7 @@ export class MeasurementService {
   }
 
   private canonicalizeUnitForApi(unit: string): string {
+    // Frontend accepts common spellings; backend expects canonical unit labels.
     const trimmed = unit.trim();
     const normalized = trimmed.toLowerCase();
 
@@ -386,6 +369,7 @@ export class MeasurementService {
     const targetUnit = item.targetUnit || item.resultUnit || '';
 
     if (operation === 'CONVERT') {
+      // Conversion input should show source -> target units.
       return `${thisValue} ${thisUnit} -> ${targetUnit}`.trim();
     }
 

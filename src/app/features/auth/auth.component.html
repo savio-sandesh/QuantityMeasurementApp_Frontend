@@ -17,6 +17,11 @@
 
     <section class="auth-panel card-shell" aria-label="Authentication panel">
       <mat-card class="auth-card" appearance="outlined">
+        <div class="auth-toolbar">
+          <button mat-icon-button type="button" class="theme-btn" (click)="toggleTheme()" [attr.aria-label]="isDarkTheme() ? 'Switch to light theme' : 'Switch to dark theme'">
+            <mat-icon class="material-symbols-outlined">{{ isDarkTheme() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+          </button>
+        </div>
         <div class="tab-header" aria-label="Authentication tabs">
           <button
             type="button"

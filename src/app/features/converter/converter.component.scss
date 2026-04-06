@@ -14,10 +14,10 @@
   min-height: calc(100vh - 1rem);
   height: calc(100vh - 1rem);
   border-radius: 18px;
-  border: 1px solid rgba(20, 24, 33, 0.2);
-  background: #f4f5f8;
+  border: 1px solid var(--app-border);
+  background: var(--app-panel-bg);
   overflow: hidden;
-  box-shadow: 0 18px 46px rgba(12, 15, 23, 0.2);
+  box-shadow: var(--app-shadow);
 }
 
 .dashboard-sidenav {
@@ -27,8 +27,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.7rem;
-  border-right: 1px solid #d7dce5;
-  background: #e9ebf1;
+  border-right: 1px solid var(--app-border);
+  background: var(--app-panel-muted);
 }
 
 .category-list {
@@ -43,7 +43,7 @@
   margin: 0 0 0.35rem;
   font-size: 2rem;
   letter-spacing: -0.03em;
-  color: #111827;
+  color: var(--app-heading);
 }
 
 .category-btn {
@@ -51,15 +51,15 @@
   border-radius: 12px;
   min-height: 44px;
   font-weight: 600;
-  color: #3f4b62;
-  background: #f7f8fb;
-  border-color: #cfd6e3;
+  color: var(--app-muted);
+  background: var(--app-surface-strong);
+  border-color: var(--app-border);
   transition: all 0.2s ease;
 }
 
 .category-btn.is-active {
-  background: #f4e5e5;
-  border-color: #e6c5c7;
+  background: var(--app-accent-soft);
+  border-color: var(--app-accent);
   color: var(--app-accent);
 }
 
@@ -87,20 +87,27 @@
   margin: 0;
   font-size: clamp(1.8rem, 2.3vw, 2.5rem);
   letter-spacing: -0.03em;
-  color: #152036;
+  color: var(--app-heading);
 }
 
 .dashboard-header p {
   margin: 0.2rem 0 0;
-  color: #44506b;
+  color: var(--app-muted);
   font-size: 1.45rem;
   font-weight: 500;
 }
 
 .menu-btn {
   border-radius: 10px;
-  border: 1px solid #c8d0df;
-  background: #fff;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-strong);
+}
+
+.theme-btn {
+  margin-left: auto;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-strong);
+  color: var(--app-accent);
 }
 
 .dashboard-grid {
@@ -111,8 +118,8 @@
 
 .surface-card {
   border-radius: 16px;
-  border: 1px solid #d8deea;
-  background: #f9fafc;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-strong);
   padding: 1rem;
   animation: riseIn 0.45s ease both;
 }
@@ -133,7 +140,7 @@
 .surface-card h3 {
   margin: 0;
   font-size: 2rem;
-  color: #19253a;
+  color: var(--app-heading);
 }
 
 .operation-tabs {
@@ -148,14 +155,29 @@
   border-radius: 999px;
   min-height: 38px;
   font-weight: 600;
-  border-color: #ced5e2;
-  background: #fff;
+  border-color: var(--app-border);
+  background: var(--app-surface-strong);
 }
 
 .operation-btn.is-active {
-  background: #f6e8e8;
+  background: var(--app-accent-soft);
   color: var(--app-accent);
-  border-color: #e6c5c7;
+  border-color: var(--app-accent);
+}
+
+:host-context(body.dark-theme) .category-btn,
+:host-context(body.dark-theme) .operation-btn,
+:host-context(body.dark-theme) .secondary-btn {
+  color: #ecf8f7;
+}
+
+:host-context(body.dark-theme) .menu-btn {
+  color: #ffffff;
+}
+
+:host-context(body.dark-theme) .category-btn.is-active,
+:host-context(body.dark-theme) .operation-btn.is-active {
+  color: #ffffff;
 }
 
 .converter-form {
@@ -175,13 +197,13 @@
 
 :host ::ng-deep .converter-form .mat-mdc-text-field-wrapper {
   border-radius: 12px;
-  background: #ffffff;
+  background: var(--app-surface-strong);
 }
 
 :host ::ng-deep .converter-form .mdc-text-field--outlined .mdc-notched-outline__leading,
 :host ::ng-deep .converter-form .mdc-text-field--outlined .mdc-notched-outline__notch,
 :host ::ng-deep .converter-form .mdc-text-field--outlined .mdc-notched-outline__trailing {
-  border-color: #d3dae8;
+  border-color: var(--app-border);
 }
 
 .primary-btn {
@@ -191,25 +213,27 @@
   letter-spacing: 0.03em;
 }
 
-.live-note {
-  margin: 0.25rem 0 0;
-  display: flex;
-  align-items: center;
-  gap: 0.45rem;
-  font-size: 0.86rem;
-  color: #6c7890;
-}
-
 .converter-form mat-form-field,
 .field-grid mat-form-field {
   width: 100%;
+}
+
+:host ::ng-deep .converter-form .mat-mdc-input-element,
+:host ::ng-deep .converter-form .mat-mdc-select-value,
+:host ::ng-deep .converter-form .mat-mdc-select-value-text {
+  color: var(--app-text) !important;
+}
+
+:host ::ng-deep .converter-form .mdc-floating-label,
+:host ::ng-deep .converter-form .mat-mdc-form-field-required-marker {
+  color: var(--app-muted) !important;
 }
 
 .stat-value {
   margin: 0.6rem 0 0;
   font-size: clamp(1.35rem, 1.8vw, 2.05rem);
   font-weight: 700;
-  color: #1d2435;
+  color: var(--app-heading);
   line-height: 1.28;
 }
 
@@ -217,7 +241,7 @@
   margin: 0.55rem 0 0;
   font-size: clamp(1.9rem, 2.5vw, 2.8rem);
   font-weight: 800;
-  color: #1d2435;
+  color: var(--app-heading);
 }
 
 .history-header {
@@ -230,7 +254,7 @@
 
 .history-error {
   margin: 0 0 0.75rem;
-  color: #b42318;
+  color: #f3746b;
   font-weight: 600;
 }
 
@@ -239,8 +263,8 @@
   overflow-x: auto;
   overflow-y: auto;
   border-radius: 12px;
-  border: 1px solid #d8deea;
-  background: #fff;
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-strong);
 }
 
 .history-table {
@@ -252,24 +276,28 @@
 .history-table th,
 .history-table td {
   text-align: left;
-  border-bottom: 1px solid #e4e8f0;
+  border-bottom: 1px solid var(--app-border);
   padding: 0.7rem 0.55rem;
   font-size: 0.9rem;
   vertical-align: top;
+}
+
+.history-table td {
+  color: var(--app-text);
 }
 
 .history-table th {
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #f5f7fb;
-  color: #5b6880;
+  background: var(--app-panel-muted);
+  color: var(--app-muted);
   font-weight: 700;
 }
 
 .empty-state {
   padding: 1.1rem 0.25rem 0.5rem;
-  color: #5f6d88;
+  color: var(--app-muted);
 }
 
 .primary-btn,

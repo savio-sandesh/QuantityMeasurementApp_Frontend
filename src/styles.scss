@@ -3,12 +3,12 @@
 
 @include mat.core();
 
-$maroon-theme: mat.define-theme(
+$teal-theme: mat.define-theme(
   (
     color: (
       theme-type: light,
-      primary: mat.$rose-palette,
-      tertiary: mat.$orange-palette
+      primary: mat.$cyan-palette,
+      tertiary: mat.$rose-palette
     ),
     density: (
       scale: 0
@@ -21,19 +21,42 @@ $maroon-theme: mat.define-theme(
 );
 
 :root {
-  @include mat.all-component-themes($maroon-theme);
+  @include mat.all-component-themes($teal-theme);
   color-scheme: light;
-  --app-bg: #2f3543;
-  --app-bg-muted: #292f3d;
-  --app-surface: rgba(255, 255, 255, 0.72);
-  --app-surface-strong: rgba(255, 255, 255, 0.9);
-  --app-text: #311c1f;
-  --app-muted: #735f62;
-  --app-accent: #7b1e2b;
-  --app-accent-strong: #5d121d;
-  --app-accent-soft: #f2d7dc;
-  --app-border: rgba(74, 24, 31, 0.16);
-  --app-shadow: 0 24px 60px rgba(58, 25, 25, 0.14);
+  --app-bg: #f4f8f8;
+  --app-bg-muted: #e8f0ef;
+  --app-surface: rgba(255, 255, 255, 0.82);
+  --app-surface-strong: #ffffff;
+  --app-text: #102527;
+  --app-muted: #486b6f;
+  --app-heading: #0a3f44;
+  --app-accent: #008080;
+  --app-accent-strong: #00695c;
+  --app-accent-soft: #d6efed;
+  --app-border: rgba(0, 105, 92, 0.2);
+  --app-shadow: 0 24px 60px rgba(4, 58, 63, 0.14);
+  --app-panel-bg: #edf3f2;
+  --app-panel-muted: #f8fcfb;
+  --app-focus: #008080;
+}
+
+body.dark-theme {
+  color-scheme: dark;
+  --app-bg: #121212;
+  --app-bg-muted: #191b1d;
+  --app-surface: rgba(30, 30, 30, 0.92);
+  --app-surface-strong: #1e1e1e;
+  --app-text: #e2eceb;
+  --app-muted: #9fb8b7;
+  --app-heading: #cfe9e6;
+  --app-accent: #26a69a;
+  --app-accent-strong: #00897b;
+  --app-accent-soft: rgba(38, 166, 154, 0.18);
+  --app-border: rgba(38, 166, 154, 0.3);
+  --app-shadow: 0 24px 60px rgba(0, 0, 0, 0.42);
+  --app-panel-bg: #1a1e21;
+  --app-panel-muted: #171a1c;
+  --app-focus: #4db6ac;
 }
 
 html,
@@ -48,14 +71,65 @@ body {
   z-index: 1000;
 }
 
+.cdk-overlay-pane .mat-mdc-select-panel {
+  background: var(--app-surface-strong);
+  color: var(--app-text);
+}
+
+.cdk-overlay-pane .mat-mdc-select-panel {
+  border: 1px solid var(--app-border);
+}
+
+.cdk-overlay-pane .mat-mdc-option .mdc-list-item__primary-text {
+  color: var(--app-text) !important;
+}
+
+.cdk-overlay-pane .mat-mdc-option:hover:not(.mdc-list-item--disabled) {
+  background: var(--app-accent-soft);
+}
+
 body {
   margin: 0;
   font-family: 'Manrope', sans-serif;
   color: var(--app-text);
   background:
-    radial-gradient(circle at top left, rgba(106, 117, 150, 0.16), transparent 34%),
-    radial-gradient(circle at bottom right, rgba(148, 45, 58, 0.1), transparent 35%),
+    radial-gradient(circle at top left, rgba(11, 112, 122, 0.18), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(0, 128, 128, 0.12), transparent 35%),
     linear-gradient(180deg, var(--app-bg) 0%, var(--app-bg-muted) 100%);
+  transition: background 0.35s ease, color 0.25s ease;
+}
+
+.mdc-text-field--focused .mdc-notched-outline__leading,
+.mdc-text-field--focused .mdc-notched-outline__notch,
+.mdc-text-field--focused .mdc-notched-outline__trailing {
+  border-color: var(--app-focus) !important;
+  border-width: 2px !important;
+}
+
+.mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) {
+  background: var(--app-accent-strong) !important;
+}
+
+.mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) .mdc-list-item__primary-text {
+  color: #ffffff !important;
+  font-weight: 700;
+  opacity: 1 !important;
+}
+
+.mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) .mat-pseudo-checkbox,
+.mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) .mat-mdc-option-pseudo-checkbox {
+  color: #ffffff !important;
+}
+
+.mat-mdc-form-field .mat-mdc-input-element,
+.mat-mdc-form-field .mat-mdc-select-value-text,
+.mat-mdc-form-field .mat-mdc-select-arrow {
+  color: var(--app-text) !important;
+}
+
+.mat-mdc-form-field .mdc-floating-label,
+.mat-mdc-form-field .mat-mdc-form-field-required-marker {
+  color: var(--app-muted) !important;
 }
 
 * {
@@ -71,4 +145,20 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: 500;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24;
 }

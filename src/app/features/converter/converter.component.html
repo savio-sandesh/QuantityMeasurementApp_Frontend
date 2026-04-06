@@ -29,6 +29,9 @@
           <h1>Quantity Measurement Dashboard</h1>
           <p>{{ category() }} {{ operationLabels[operation()] }}</p>
         </div>
+        <button mat-icon-button type="button" class="theme-btn" (click)="toggleTheme()" [attr.aria-label]="isDarkTheme() ? 'Switch to light theme' : 'Switch to dark theme'">
+          <mat-icon class="material-symbols-outlined">{{ isDarkTheme() ? 'light_mode' : 'dark_mode' }}</mat-icon>
+        </button>
       </header>
 
       <section class="dashboard-grid">

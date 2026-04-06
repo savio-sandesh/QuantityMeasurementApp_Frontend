@@ -21,9 +21,9 @@
 
 .card-shell {
   border-radius: 30px;
-  background: #f5f5f7;
-  border: 1px solid rgba(186, 191, 201, 0.45);
-  box-shadow: 0 18px 48px rgba(21, 25, 37, 0.24);
+  background: var(--app-surface-strong);
+  border: 1px solid var(--app-border);
+  box-shadow: var(--app-shadow);
   animation: fadeUp 0.6s ease both;
 }
 
@@ -31,6 +31,8 @@
   padding: clamp(1.8rem, 2.8vw, 2.8rem);
   display: grid;
   place-items: center;
+  background: linear-gradient(160deg, var(--app-accent-strong), var(--app-accent));
+  border-color: var(--app-border);
 }
 
 .brand-card {
@@ -42,7 +44,7 @@
   position: relative;
   height: clamp(190px, 22vw, 280px);
   border-radius: 26px;
-  background: #e8eaee;
+  background: rgba(255, 255, 255, 0.08);
   margin-bottom: 1.8rem;
   overflow: hidden;
 }
@@ -57,7 +59,7 @@
   height: 210px;
   left: -42px;
   top: 38px;
-  background: rgba(165, 74, 92, 0.24);
+  background: rgba(255, 255, 255, 0.12);
 }
 
 .hero-circle-b {
@@ -66,7 +68,7 @@
   left: 37%;
   top: 56px;
   transform: translateX(-50%);
-  background: rgba(71, 156, 178, 0.28);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .hero-circle-c {
@@ -74,7 +76,7 @@
   height: 320px;
   right: -118px;
   top: -4px;
-  background: rgba(120, 133, 159, 0.3);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .brand-icon {
@@ -84,8 +86,8 @@
   display: grid;
   place-items: center;
   margin: 0 auto 1.25rem;
-  background: #f0e9e9;
-  color: var(--app-accent);
+  background: rgba(255, 255, 255, 0.24);
+  color: #ffffff;
 }
 
 .brand-card h1 {
@@ -93,7 +95,7 @@
   font-size: clamp(2rem, 3.2vw, 3.2rem);
   line-height: 1.06;
   letter-spacing: -0.035em;
-  color: #182033;
+  color: #ffffff;
 }
 
 .brand-card p {
@@ -101,7 +103,7 @@
   margin: 1rem auto 0;
   font-size: 1.05rem;
   line-height: 1.58;
-  color: #4f5b74;
+  color: rgba(255, 255, 255, 0.88);
 }
 
 .auth-panel {
@@ -114,16 +116,28 @@
   width: min(600px, 100%);
   padding: clamp(1.35rem, 1.8vw, 1.85rem);
   border-radius: 24px;
-  border: 1px solid rgba(188, 193, 202, 0.52);
+  border: 1px solid var(--app-border);
   box-shadow: none;
   background: transparent;
+}
+
+.auth-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.4rem;
+}
+
+.theme-btn {
+  border: 1px solid var(--app-border);
+  background: var(--app-surface-strong);
+  color: var(--app-accent);
 }
 
 .tab-header {
   display: flex;
   gap: 1.5rem;
   padding-bottom: 0.55rem;
-  border-bottom: 1px solid #d4d8e0;
+  border-bottom: 1px solid var(--app-border);
   margin-bottom: 1rem;
 }
 
@@ -134,13 +148,13 @@
   background: transparent;
   font-weight: 700;
   letter-spacing: 0.035em;
-  color: #78859d;
+  color: var(--app-muted);
   cursor: pointer;
   transition: color 0.24s ease;
 }
 
 .tab-button.is-active {
-  color: #121b2d;
+  color: var(--app-heading);
   box-shadow: inset 0 -3px 0 var(--app-accent);
 }
 
@@ -172,17 +186,17 @@
 
 :host ::ng-deep .auth-form .mat-mdc-text-field-wrapper {
   border-radius: 14px;
-  background: #e7edf7;
+  background: var(--app-panel-muted);
 }
 
 :host ::ng-deep .auth-form .mdc-text-field--outlined .mdc-notched-outline__leading,
 :host ::ng-deep .auth-form .mdc-text-field--outlined .mdc-notched-outline__notch,
 :host ::ng-deep .auth-form .mdc-text-field--outlined .mdc-notched-outline__trailing {
-  border-color: #c4cddc;
+  border-color: var(--app-border);
 }
 
 .toggle-password {
-  color: #7b869a;
+  color: var(--app-muted);
 }
 
 .primary-btn {
@@ -197,7 +211,7 @@
   min-height: 1.35rem;
   margin: 0;
   font-size: 0.95rem;
-  color: #6f7b92;
+  color: var(--app-muted);
 }
 
 .form-message.success {

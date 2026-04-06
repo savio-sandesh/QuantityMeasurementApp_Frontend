@@ -5,20 +5,23 @@ import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { Eye, EyeOff, LucideAngularModule, ShoppingBag } from 'lucide-angular';
 import { AuthService } from '../../core/services/auth.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-auth',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatInputModule, LucideAngularModule],
+  imports: [CommonModule, ReactiveFormsModule, MatButtonModule, MatCardModule, MatFormFieldModule, MatIconModule, MatInputModule, LucideAngularModule],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss'
 })
 export class AuthComponent {
   private readonly fb = inject(FormBuilder);
   private readonly authService = inject(AuthService);
+  private readonly themeService = inject(ThemeService);
   private readonly router = inject(Router);
 
   readonly shoppingBagIcon = ShoppingBag;
@@ -29,6 +32,7 @@ export class AuthComponent {
   readonly loginPasswordVisible = signal(false);
   readonly signupPasswordVisible = signal(false);
   readonly loginMessage = signal('');
+  readonly isDarkTheme = this.themeService.isDark;
   readonly signupMessage = signal('');
   readonly loginMessageTone = signal<'success' | 'error' | ''>('');
   readonly signupMessageTone = signal<'success' | 'error' | ''>('');
@@ -63,6 +67,10 @@ export class AuthComponent {
 
   toggleSignupPassword(): void {
     this.signupPasswordVisible.update((visible: boolean) => !visible);
+  }
+
+  toggleTheme(): void {
+    this.themeService.toggleTheme();
   }
 
   async submitLogin(): Promise<void> {
